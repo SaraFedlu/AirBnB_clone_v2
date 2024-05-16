@@ -1,0 +1,26 @@
+.container section.places {
+    display: flex;
+    flex-direction: column;
+}
+.container section.places h1 {
+    text-align: start;
+    font-size: 30px;
+}
+.container section.places .articles {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+.container section.places .articles article {
+    width: 390px;
+    padding: 20px;
+    margin: 20px;
+    border: #FF5A5F solid 1px;
+    border-radius: 4px;
+    align-self: center;
+}
+.container section.places .articles article h2 {
+    font-size: 30px;
+    text-align: center;
+}
