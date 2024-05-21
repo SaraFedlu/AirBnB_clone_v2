@@ -1,4 +1,4 @@
-#!/bin/env bash
+#!/usr/bin/env bash
 # Install Nginx if not already installed
 sudo apt-get update
 sudo apt-get install -y nginx
@@ -27,7 +27,7 @@ server {
 
     server_name _;
 
-    location /hbnb_static/ {
+    location /hbnb_static {
         alias /data/web_static/current/;
         index index.html;
     }
