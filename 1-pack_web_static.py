@@ -5,6 +5,16 @@ from datetime import datetime
 import os
 
 def do_pack():
+    """
+    Generates a .tgz archive from the contents of the web_static folder.
+
+    The archive will be stored in a folder named 'versions', which will be
+    created if it does not exist. The name of the archive will include the
+    current timestamp in the format web_static_<year><month><day><hour><minute><second>.tgz.
+
+    Returns:
+        str: The path to the created archive if successful, otherwise None.
+    """
     # Create the versions directory if it doesn't exist
     if not os.path.exists("versions"):
         os.makedirs("versions")
