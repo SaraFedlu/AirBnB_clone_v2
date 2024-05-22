@@ -4,10 +4,10 @@ from fabric.api import env, put, run, local
 from datetime import datetime
 import os
 
-# Define the IP addresses of the web servers
+# Define the IP addresses of your web servers
 env.hosts = ['100.25.104.141', '34.207.212.28']
 env.user = 'ubuntu'  # Set the remote user to 'ubuntu'
-env.key_filename = '/Back-up/.ssh/school'
+env.key_filename = '~/.ssh/id_rsa'
 
 
 def do_pack():
@@ -17,7 +17,7 @@ def do_pack():
     The archive will be stored in a folder named 'versions', which will be
     created if it does not exist. The name of the archive will include the
     current timestamp in the format web_static_<year><month><day><hour>\
-    <minute><second>.tgz.
+            <minute><second>.tgz.
 
     Returns:
         str: The path to the created archive if successful, otherwise None.
@@ -49,7 +49,8 @@ def do_deploy(archive_path):
         archive_path (str): The path to the archive to distribute.
 
     Returns:
-        bool: True if all operations have been done correctly, otherwise False.
+        bool: True if all operations have been done correctly,\
+                otherwise False.
     """
     if not os.path.exists(archive_path):
         return False
@@ -91,13 +92,24 @@ def do_deploy(archive_path):
         return False
 
 
-if __name__ == "__main__":
+def deploy():
+    """
+    Creates and distributes an archive to web servers.
+
+    Returns:
+        bool: True if the deployment was successful,\
+                otherwise False.
+    """
     archive_path = do_pack()
-    if archive_path:
-        success = do_deploy(archive_path)
-        if success:
-            print("Deployment successful")
-        else:
-            print("Deployment failed")
+    if not archive_path:
+        return False
+
+    return do_deploy(archive_path)
+
+
+if __name__ == "__main__":
+    success = deploy()
+    if success:
+        print("Deployment successful")
     else:
-        print("Packing failed")
+        print("Deployment failed")
