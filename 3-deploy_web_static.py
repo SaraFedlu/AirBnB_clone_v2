@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-from fabric.api import env, put, run, local
+from fabric.api import env, put, run, local, execute
 from datetime import datetime
 import os
 
@@ -34,7 +34,7 @@ def do_pack():
     # Create the archive from the web_static folder
     result = local("tar -czvf {} web_static".format(archive_name))
 
-    # Check if the archive was created successfully and return the path or None
+    # Check if the archive was created and return the path or None
     if result.succeeded:
         return archive_name
     else:
@@ -49,8 +49,7 @@ def do_deploy(archive_path):
         archive_path (str): The path to the archive to distribute.
 
     Returns:
-        bool: True if all operations have been done correctly,\
-                otherwise False.
+        bool: True if all operations have been done correctly, otherwise False
     """
     if not os.path.exists(archive_path):
         return False
@@ -92,19 +91,71 @@ def do_deploy(archive_path):
         return False
 
 
+def deploy_to_server(archive_path, is_local=False):
+    """
+    Deploys the archive either locally or to a remote server.
+
+    Args:
+        archive_path (str): The path to the archive to distribute.
+        is_local (bool): If True, deploys locally; otherwise,\
+                deploys to a remote server.
+
+    Returns:
+        bool: True if all operations have been done correctly, otherwise False
+    """
+    if not os.path.exists(archive_path):
+        return False
+
+    # Get the archive filename and its basename (without extension)
+    archive_filename = os.path.basename(archive_path)
+    archive_basename = archive_filename.split(".")[0]
+
+    # Define the full path on the server
+    release_path = "/data/web_static/releases/{}".format(archive_basename)
+
+    try:
+        if is_local:
+            # Local deployment steps
+            local("mkdir -p {}".format(release_path))
+            local("tar -xzvf {} -C {}".format(archive_path, release_path))
+            local("mv {}/web_static/* {}".format(release_path, release_path))
+            local("rm -rf {}/web_static".format(release_path))
+            local("rm -rf /data/web_static/current")
+            local("ln -s {} /data/web_static/current".format(release_path))
+        else:
+            # Remote deployment steps
+            put(archive_path, "/tmp/{}".format(archive_filename))
+            run("mkdir -p {}".format(release_path))
+            run("tar -xzvf /tmp/{} -C {}".format(
+                archive_filename, release_path))
+            run("rm /tmp/{}".format(archive_filename))
+            run("mv {}/web_static/* {}".format(release_path, release_path))
+            run("rm -rf {}/web_static".format(release_path))
+            run("rm -rf /data/web_static/current")
+            run("ln -s {} /data/web_static/current".format(release_path))
+
+        return True
+    except Exception:
+        return False
+
+
 def deploy():
     """
     Creates and distributes an archive to web servers.
 
     Returns:
-        bool: True if the deployment was successful,\
-                otherwise False.
+        bool: True if the deployment was successful, otherwise False.
     """
     archive_path = do_pack()
     if not archive_path:
         return False
 
-    return do_deploy(archive_path)
+    # Deploy locally first
+    if not deploy_to_server(archive_path, is_local=True):
+        return False
+
+    # Deploy to remote servers
+    return execute(deploy_to_server, archive_path, is_local=False)
 
 
 if __name__ == "__main__":
